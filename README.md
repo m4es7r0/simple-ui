@@ -1,73 +1,162 @@
-# React + TypeScript + Vite
+# simple-ui — React component library
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+simple-ui is a collection of accessible, composable UI components for React, built on top of Base UI and styled with Tailwind CSS. It includes:
 
-Currently, two official plugins are available:
+- A ready-to-run Storybook with docs and a11y
+- Unit tests (Vitest + Testing Library)
+- Visual regression tests (Playwright)
+- ESM library build with type declarations
+- Changesets for semantic versioning
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech stack
 
-## React Compiler
+- React 19, TypeScript, Vite
+- Base UI primitives (`@base-ui-components/react`)
+- Tailwind CSS 4
+- Storybook 10
+- Vitest + @testing-library/react
+- Playwright
+- Changesets
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Project structure (key paths)
 
-## Expanding the ESLint configuration
+- `src/components/ui/` — component source
+- `src/lib/utils.ts` — shared utilities
+- `src/index.ts` — barrel exports for the library
+- `.storybook/` — Storybook configuration
+- `src/components/ui/**/__stories__/*.stories.tsx` — stories
+- `src/components/ui/**/__tests__/*.test.tsx` — unit tests
+- `tests/visual/` — Playwright visual tests
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Using as a component library
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The library is built as ESM and exposes types. React and other heavy deps are peer dependencies for optimal bundle size.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Peer dependencies you must have in your app:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `react`, `react-dom`
+- `@base-ui-components/react`
+- `tailwindcss`
+
+1. Install the package
+
+- Local file install during development:
+
+```bash
+npm i file:../simple-ui
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- Or Git install:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm i git+ssh://git@github.com:<your-org>/<your-repo>.git#main
 ```
+
+2. Import components
+
+```tsx
+import { Button, Card, Input } from "simple-ui";
+
+export default function Example() {
+  return (
+    <Card className="p-4">
+      <Button>Click me</Button>
+      <Input placeholder="Type..." />
+    </Card>
+  );
+}
+```
+
+3. Styles
+   Components rely on Tailwind CSS tokens/variables. Ensure your host app has Tailwind configured and includes its base layers. These components do not ship global CSS by default; copy or adapt the styles you need (see `src/index.css`) into your app’s Tailwind setup.
+
+## Development
+
+Start Storybook:
+
+```bash
+npm run storybook
+```
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Run Storybook-driven tests (in-browser):
+
+```bash
+npm run test:storybook
+```
+
+Run visual tests (first install browsers):
+
+```bash
+npx playwright install --with-deps
+npm run test:visual
+```
+
+- Visual snapshots are stored under `tests/visual/__screenshots__/`.
+- Update snapshots when UX changes are expected:
+
+```bash
+npx playwright test --update-snapshots
+```
+
+Build the library (ESM + types):
+
+```bash
+npm run build:lib
+```
+
+Outputs to `dist/` with tree-shakeable ESM (`sideEffects: false`) and `.d.ts` declarations.
+
+## Storybook
+
+- Stories live next to components under `__stories__`.
+- Addons enabled: Docs, A11y, Vitest integration.
+
+## Testing approach
+
+- Unit tests: lightweight smoke/assertion tests with @testing-library/react to validate rendering and basic props/roles.
+- Storybook tests: integration via the Vitest addon to execute stories in a browser environment.
+- Visual regression: Playwright opens Storybook iframe for each “Default” story and compares screenshots against baselines.
+
+## Versioning & releases (Changesets)
+
+This repo uses Changesets to manage semantic versioning and changelogs.
+
+Record changes:
+
+```bash
+npx changeset
+```
+
+Version and publish:
+
+```bash
+npm run release
+```
+
+Notes:
+
+- `package.json` is currently `"private": true`; set it to `false` when you are ready to publish.
+- Publishing requires proper registry auth and may need `access` config tweaks in `.changeset/config.json`.
+
+## Build details
+
+- ESM only (`module` and `exports.import` point to `dist/index.js`)
+- Types at `dist/index.d.ts`
+- Externals: `react`, `react-dom`, `@base-ui-components/react`, `class-variance-authority`, `clsx`, `tailwind-merge`
+- Alias `@` -> `./src`
+
+## Scripts
+
+- `storybook` — start Storybook
+- `build-storybook` — static Storybook build
+- `test` — run unit tests
+- `test:storybook` — run Storybook integration tests
+- `test:visual` — run Playwright visual tests
+- `build:lib` — emit types and ESM bundle
+- `release` — Changesets versioning + publish
