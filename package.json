@@ -14,6 +14,7 @@
     "test:storybook": "vitest --project storybook --run",
     "test:visual": "playwright test",
     "build:lib": "tsc -b tsconfig.lib.json && vite build",
+    "changeset": "npx changeset",
     "release": "changeset version && changeset publish"
   },
   "dependencies": {
